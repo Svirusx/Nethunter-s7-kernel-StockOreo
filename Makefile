@@ -4,6 +4,7 @@ SUBLEVEL = 91
 EXTRAVERSION =
 NAME = Diseased Newt
 
+export ANDROID_MAJOR_VERSION=o
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
