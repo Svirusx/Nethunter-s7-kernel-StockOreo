@@ -42,6 +42,9 @@
 #else
 #include "../function/f_mtp.c"
 #endif
+#include "../function/f_hid.h"
+#include "../function/f_hid_android_keyboard.c"
+#include "../function/f_hid_android_mouse.c"
 
 #include "../function/f_accessory.c"
 #define USB_ETH_RNDIS y
@@ -1303,6 +1306,40 @@ static struct android_usb_function midi_function = {
 	.attributes	= midi_function_attributes,
 };
 
+static int hid_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
+{
+	return ghid_setup(cdev->gadget, 2);
+}
+
+static void hid_function_cleanup(struct android_usb_function *f)
+{
+	ghid_cleanup();
+}
+
+static int hid_function_bind_config(struct android_usb_function *f, struct usb_configuration *c)
+{
+	int ret;
+	printk(KERN_INFO "hid keyboard\n");
+	ret = hidg_bind_config(c, &ghid_device_android_keyboard, 0);
+	if (ret) {
+		pr_info("%s: hid_function_bind_config keyboard failed: %d\n", __func__, ret);
+		return ret;
+	}
+	printk(KERN_INFO "hid mouse\n");
+	ret = hidg_bind_config(c, &ghid_device_android_mouse, 1);
+	if (ret) {
+		pr_info("%s: hid_function_bind_config mouse failed: %d\n", __func__, ret);
+		return ret;
+	}
+	return 0;
+}
+
+static struct android_usb_function hid_function = {
+	.name		= "hid",
+	.init		= hid_function_init,
+	.cleanup	= hid_function_cleanup,
+	.bind_config	= hid_function_bind_config,
+};
 
 static struct android_usb_function *supported_functions[] = {
 	&ffs_function,
@@ -1323,6 +1360,7 @@ static struct android_usb_function *supported_functions[] = {
 	&conn_gadget_function,
 #endif
 	&midi_function,
+	&hid_function,
 	NULL
 };
 
@@ -1473,8 +1511,8 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 	char buf[256], *b;
 	char aliases[256], *a;
 	int err;
-	int is_ffs;
 	int ffs_enabled = 0;
+	int hid_enabled = 0;
 
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	g_rndis = 0;
@@ -1502,50 +1540,59 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 		if (!name)
 			continue;
 
-		is_ffs = 0;
+
 		strlcpy(aliases, dev->ffs_aliases, sizeof(aliases));
 		a = aliases;
 
 		while (a) {
 			char *alias = strsep(&a, ",");
 			if (alias && !strcmp(name, alias)) {
-				is_ffs = 1;
+				name = "ffs";
 				break;
 			}
 		}
 
-		if (is_ffs) {
-			if (ffs_enabled)
-				continue;
-			err = android_enable_function(dev, "ffs");
-			if (err)
-				pr_err("android_usb: Cannot enable ffs (%d)\n",
-									err);
-			else
-				ffs_enabled = 1;
+		if (ffs_enabled && !strcmp(name, "ffs"))
 			continue;
-		}
+
+		if (hid_enabled && !strcmp(name, "hid"))
+			continue;
 
 		err = android_enable_function(dev, name);
-		if (err)
+		if (err) {
 			pr_err("android_usb: Cannot enable '%s' (%d)\n",
-							   name, err);
-#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+												name, err);
+			continue;
+			}
+		if (!strcmp(name, "ffs"))
+			ffs_enabled = 1;
 
+		if (!strcmp(name, "hid"))
+				hid_enabled = 1;
+
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 			/* Enable ACM function, if MTP is enabled. */
 			if (!strcmp(name, "mtp")) {
-				err = android_enable_function(dev, "acm");
+				name = "acm";
+				err = android_enable_function(dev, name);
 				if (err)
-					pr_err(
-					"android_usb: Cannot enable '%s'\n",
-					name);
+					pr_err("android_usb: Cannot enable '%s' (%d)",
+								name, err);
 			}
 
-			if (!strcmp(name, "rndis")) {
+			if (!strcmp(name, "rndis"))
 				g_rndis = 1;
-			}
 
 #endif
+	}
+
+	/* Always enable HID gadget function. */
+	if (!hid_enabled) {
+		name = "hid";
+		err = android_enable_function(dev, name);
+		if (err)
+			pr_err("android_usb: Cannot enable '%s' (%d)",
+						name, err);
 	}
 
 	mutex_unlock(&dev->mutex);
