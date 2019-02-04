@@ -96,7 +96,7 @@ s32 bdev_check_bdi_valid(struct super_block *sb)
 			fsi->prev_eio |= SDFAT_EIO_BDI;
 			sdfat_log_msg(sb, KERN_ERR, "%s: block device is "
 				"eliminated.(bdi:%p)", __func__, sb->s_bdi);
-			sdfat_debug_warn_on(1);
+			
 		}
 		return -ENXIO;
 	}
@@ -159,7 +159,7 @@ s32 bdev_mread(struct super_block *sb, u32 secno, struct buffer_head **bh, u32 n
 	if (!(fsi->prev_eio & SDFAT_EIO_READ)) {
 		fsi->prev_eio |= SDFAT_EIO_READ;
 		sdfat_log_msg(sb, KERN_ERR, "%s: No bh. I/O error.", __func__);
-		sdfat_debug_warn_on(1);
+		
 	}
 
 	return -EIO;
@@ -213,7 +213,7 @@ no_bh:
 	if (!(fsi->prev_eio & SDFAT_EIO_WRITE)) {
 		fsi->prev_eio |= SDFAT_EIO_WRITE;
 		sdfat_log_msg(sb, KERN_ERR, "%s: No bh. I/O error.", __func__);
-		sdfat_debug_warn_on(1);
+		
 	}
 
 	return -EIO;
