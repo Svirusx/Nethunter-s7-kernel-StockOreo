@@ -173,10 +173,7 @@ struct vfsspi_ioctl_transfer {
 
 /* used for WoG mode */
 extern void vfsspi_fp_homekey_ev(void);
-/* export variable for signaling */
-EXPORT_SYMBOL(vfsspi_fp_homekey_ev);
 extern int vfsspi_goto_suspend;
-EXPORT_SYMBOL(vfsspi_goto_suspend);
 #endif
 
 /*

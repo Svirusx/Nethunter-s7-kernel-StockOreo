@@ -198,14 +198,18 @@ struct vfsspi_device_data {
 int FP_CHECK = 0; /* extern variable init */
 #endif
 
-int vfsspi_goto_suspend = 0;
+
 bool fp_lockscreen_mode = false;
+EXPORT_SYMBOL(fp_lockscreen_mode);
 
 #define VENDOR		"SYNAPTICS"
 #define CHIP_ID		"VIPER"
 
 static struct vfsspi_device_data *g_data;
-#ifndef ENABLE_SENSORS_FPRINT_SECURE
+#ifdef ENABLE_SENSORS_FPRINT_SECURE
+int vfsspi_goto_suspend = 0;
+EXPORT_SYMBOL(vfsspi_goto_suspend);
+#else
 static int vfsspi_type_check(struct vfsspi_device_data *vfsspi_device);
 #endif
 
@@ -269,6 +273,9 @@ void vfsspi_fp_homekey_ev(void){
 	} else
 		pr_info("%s : not set the retain pin!\n", __func__);
 }
+#ifndef ENABLE_SENSORS_FPRINT_SECURE
+EXPORT_SYMBOL(vfsspi_fp_homekey_ev);
+#endif
 #endif
 
 static int vfsspi_send_drdy_signal(struct vfsspi_device_data *vfsspi_device)

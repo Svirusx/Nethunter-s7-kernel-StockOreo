@@ -58,8 +58,6 @@ extern bool fp_lockscreen_mode;
 #ifdef CONFIG_SENSORS_FP_LOCKSCREEN_MODE
 /* input/Keyboard/gpio_keys.c */
 extern bool wakeup_by_key(void);
-/* export variable for signaling */
-EXPORT_SYMBOL(fp_lockscreen_mode);
 #endif
 #endif
 
