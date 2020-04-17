@@ -64,9 +64,6 @@ MODULE_DESCRIPTION("Android Composite USB Driver");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("1.0");
 
-
-
-
 static const char longname[] = "Gadget Android";
 #define CHIPID_SIZE             (16)
 
@@ -1518,9 +1515,9 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 	char buf[256], *b;
 	char aliases[256], *a;
 	int err;
-	int ffs_enabled = 0;
-	int hid_enabled = 0;
 	int is_ffs;
+	int ffs_enabled = 0;
+
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	g_rndis = 0;
 #endif
@@ -1546,31 +1543,19 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 		name = strsep(&b, ",");
 		if (!name)
 			continue;
-if(hid_disable){
-	is_ffs = 0;
-}
 
+		is_ffs = 0;
 		strlcpy(aliases, dev->ffs_aliases, sizeof(aliases));
 		a = aliases;
 
 		while (a) {
 			char *alias = strsep(&a, ",");
 			if (alias && !strcmp(name, alias)) {
-				if(!hid_disable){
-				name = "ffs";
-				} else {
-					is_ffs = 1;
-				}
+				is_ffs = 1;
 				break;
 			}
 		}
-if(!hid_disable){
-		if (ffs_enabled && !strcmp(name, "ffs"))
-			continue;
 
-		if (hid_enabled && !strcmp(name, "hid"))
-			continue;
-} else {
 		if (is_ffs) {
 			if (ffs_enabled)
 				continue;
@@ -1580,66 +1565,34 @@ if(!hid_disable){
 									err);
 			else
 				ffs_enabled = 1;
-				continue;
-		}
-}
-		err = android_enable_function(dev, name);
-		
-if(!hid_disable){		
-		if (err) {
-			pr_err("android_usb: Cannot enable '%s' (%d)\n",
-												name, err);
 			continue;
-			}
-		if (!strcmp(name, "ffs"))
-			ffs_enabled = 1;
+		}
 
-		if (!strcmp(name, "hid"))
-				hid_enabled = 1;
-} else {
+		err = android_enable_function(dev, name);
 		if (err)
 			pr_err("android_usb: Cannot enable '%s' (%d)\n",
-												name, err);
-}
+							   name, err);
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+
 			/* Enable ACM function, if MTP is enabled. */
 			if (!strcmp(name, "mtp")) {
-				if(!hid_disable){
-				name = "acm";
-				err = android_enable_function(dev, name);
-				} else {
-					err = android_enable_function(dev, "acm");
-				}
-				if(!hid_disable){
-					if (err) {
-						pr_err("android_usb: Cannot enable '%s' (%d)",
-									name, err);
-					}
-				} else {
-					if (err) {
+				err = android_enable_function(dev, "acm");
+				if (err)
 					pr_err(
 					"android_usb: Cannot enable '%s'\n",
-					name);	
-					}
-				}
-					
+					name);
 			}
 
-			if (!strcmp(name, "rndis"))
+			if (!strcmp(name, "rndis")) {
 				g_rndis = 1;
+			}
 
 #endif
 	}
 
 if(!hid_disable){
-	/* Always enable HID gadget function. */
-	if (!hid_enabled) {
-		name = "hid";
-		err = android_enable_function(dev, name);
-		if (err)
-			pr_err("android_usb: Cannot enable '%s' (%d)",
-						name, err);
-	}
+	/* HID driver always enabled, it's the whole point of this kernel patch */
+	android_enable_function(dev, "hid");
 }
 	mutex_unlock(&dev->mutex);
 
