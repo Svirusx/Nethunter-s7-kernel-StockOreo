@@ -9,7 +9,8 @@ export BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
 export ANDROID_MAJOR_VERSION=o
 export ANDROID_VERSION=80000
 export PLATFORM_VERSION=8.0.0
-	
+
+
 RDIR=$(pwd)
 OUTDIR=$RDIR/arch/$ARCH/boot
 DTSDIR=$RDIR/arch/$ARCH/boot/dts
@@ -19,7 +20,7 @@ INCDIR=$RDIR/include
 PAGE_SIZE=2048
 DTB_PADDING=0
 
-
+export KERNEL_VERSION="Nethunter_WirusStock-v1.5"
 
 DEFCONFIG=nethunter_defconfig
 DEFCONFIG_S7FLAT=herolte_defconfig
