@@ -19,18 +19,16 @@ INCDIR=$RDIR/include
 PAGE_SIZE=2048
 DTB_PADDING=0
 
+
+
 DEFCONFIG=nethunter_defconfig
 DEFCONFIG_S7FLAT=herolte_defconfig
 DEFCONFIG_S7EDGE=hero2lte_defconfig
 
 
-
-OS=twOreo
-ANDROID=8
-MODEL=G930
-
 #chosen defconfig:
 DEVICE_DEFCONFIG=$DEFCONFIG_S7FLAT
+MODEL=G930	#OR G935
 
 
 export KBUILD_BUILD_VERSION="1"
@@ -102,7 +100,7 @@ rm -f temp/split_img/boot.img-zImage
 	mv $RDIR/arch/$ARCH/boot/dtb.img temp/split_img/boot.img-dt
 	cd temp
 
-./repackimg.sh
+#./repackimg.sh
 
 echo SEANDROIDENFORCE >> image-new.img
 mkdir $RDIR/build/kernel-temp 2>/dev/null
@@ -112,9 +110,9 @@ find $RDIR/ -name '*.ko'  -not -path "$RDIR/build/*" -exec cp --parents -f '{}' 
 find $RDIR/ -name '*.fw'  -not -path "$RDIR/build/*" -exec cp --parents -f '{}' $RDIR/build/$MODEL/firmware \;
 find $RDIR/ -name '*.ko'  -not -path "$RDIR/build/*" -exec rm -f {} +
 find $RDIR/ -name '*.fw'  -not -path "$RDIR/build/*" -exec rm -f {} +
-mv -f $RDIR/build/$MODEL/modules/home/svirusx/Nethunter-s7-kernel-WirusMOD-AiO/* $RDIR/build/$MODEL/modules
+mv -f $RDIR/build/$MODEL/modules/home/svirusx/Nethunter-s7-kernel-StockOreo/* $RDIR/build/$MODEL/modules
 rm -rf $RDIR/build/$MODEL/modules/home
-mv -f $RDIR/build/$MODEL/firmware/home/svirusx/Nethunter-s7-kernel-WirusMOD-AiO/* $RDIR/build/$MODEL/firmware
+mv -f $RDIR/build/$MODEL/firmware/home/svirusx/Nethunter-s7-kernel-StockOreo/* $RDIR/build/$MODEL/firmware
 rm -rf $RDIR/build/$MODEL/firmware/home
 mv image-new.img $RDIR/build/$MODEL/$MODEL-boot.img
 rm -rf $RDIR/build/temp
