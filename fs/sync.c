@@ -17,6 +17,10 @@
 #include <linux/backing-dev.h>
 #include "internal.h"
 
+bool fsync_enabled = true;
+module_param(fsync_enabled, bool, 0755);
+EXPORT_SYMBOL(fsync_enabled);
+
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
 
