@@ -100,7 +100,7 @@ rm -f temp/split_img/boot.img-zImage
 	mv $RDIR/arch/$ARCH/boot/dtb.img temp/split_img/boot.img-dt
 	cd temp
 
-#./repackimg.sh
+./repackimg.sh
 
 echo SEANDROIDENFORCE >> image-new.img
 mkdir $RDIR/build/kernel-temp 2>/dev/null
