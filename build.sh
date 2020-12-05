@@ -20,8 +20,6 @@ INCDIR=$RDIR/include
 PAGE_SIZE=2048
 DTB_PADDING=0
 
-export KERNEL_VERSION="Nethunter_WirusStock-v1.5"
-
 DEFCONFIG=nethunter_defconfig
 DEFCONFIG_S7FLAT=herolte_defconfig
 DEFCONFIG_S7EDGE=hero2lte_defconfig
@@ -43,70 +41,9 @@ make -j$BUILD_JOB_NUMBER ARCH=$ARCH CROSS_COMPILE=$BUILD_CROSS_COMPILE || exit -
 echo ""
 rm -f $RDIR/arch/$ARCH/configs/tmp_defconfig
 
-
-#Build DTB
-cp $DTSDIR/exynos8890-herolte_stock.dtsi $DTSDIR/exynos8890-herolte_common.dtsi
-
-
-case $MODEL in
-	G930)
-		DTSFILES="exynos8890-herolte_eur_open_04 exynos8890-herolte_eur_open_08
-				exynos8890-herolte_eur_open_09 exynos8890-herolte_eur_open_10"
-		;;
-	G935)
-		DTSFILES="exynos8890-hero2lte_eur_open_04 exynos8890-hero2lte_eur_open_08"
-		;;
-	*)
-
-		echo "Unknown device: $MODEL"
-		exit 1
-		;;
-
-esac
-	mkdir -p $OUTDIR $DTBDIR
-	cd $DTBDIR || {
-		echo "Unable to cd to $DTBDIR!"
-		exit 1
-	}
-	rm -f ./*
-	echo "Processing dts files."
-	for dts in $DTSFILES; do
-		echo "=> Processing: ${dts}.dts"
-		${CROSS_COMPILE}cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
-		echo "=> Generating: ${dts}.dtb"
-		$DTCTOOL -p $DTB_PADDING -i "$DTSDIR" -O dtb -o "${dts}.dtb" "${dts}.dts"
-	done
-	echo "Generating dtb.img."
-	$RDIR/scripts/dtbtool_exynos/dtbtool -o "$OUTDIR/dtb.img" -d "$DTBDIR/" -s $PAGE_SIZE
-	echo "Done."
-	
-	rm -f $DTSDIR/exynos8890-herolte_common.dtsi
-
-
-
-
-#Building Ramdisk
-
-		
-cd $RDIR/build
-mkdir temp 2>/dev/null
-cp -rf aik/. temp
-
-cp -rf ramdisk/ramdisk/. temp/ramdisk
-cp -rf ramdisk/split_img/. temp/split_img
-
-rm -f temp/split_img/boot.img-zImage
-	rm -f temp/split_img/boot.img-dt
-	mv $RDIR/arch/$ARCH/boot/Image temp/split_img/boot.img-zImage
-	mv $RDIR/arch/$ARCH/boot/dtb.img temp/split_img/boot.img-dt
-	cd temp
-
-./repackimg.sh
-
-echo SEANDROIDENFORCE >> image-new.img
-mkdir $RDIR/build/kernel-temp 2>/dev/null
 mkdir -p $RDIR/build/$MODEL/modules
 mkdir -p $RDIR/build/$MODEL/firmware
+mv $RDIR/arch/$ARCH/boot/Image $RDIR/build/$MODEL/
 find $RDIR/ -name '*.ko'  -not -path "$RDIR/build/*" -exec cp --parents -f '{}' $RDIR/build/$MODEL/modules  \;
 find $RDIR/ -name '*.fw'  -not -path "$RDIR/build/*" -exec cp --parents -f '{}' $RDIR/build/$MODEL/firmware \;
 find $RDIR/ -name '*.ko'  -not -path "$RDIR/build/*" -exec rm -f {} +
@@ -115,8 +52,6 @@ mv -f $RDIR/build/$MODEL/modules/home/svirusx/Nethunter-s7-kernel-StockOreo/* $R
 rm -rf $RDIR/build/$MODEL/modules/home
 mv -f $RDIR/build/$MODEL/firmware/home/svirusx/Nethunter-s7-kernel-StockOreo/* $RDIR/build/$MODEL/firmware
 rm -rf $RDIR/build/$MODEL/firmware/home
-mv image-new.img $RDIR/build/$MODEL/$MODEL-boot.img
-rm -rf $RDIR/build/temp
 
 echo "END"
 
